@@ -1,233 +1,203 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Novel AI Solutions - Building the AI Operating System for Everyday Life</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <nav id="navbar">
-    <div class="nav-container">
-      <div class="nav-content">
-        <button class="logo-button" onclick="scrollToSection('home')">
-          <div class="logo">
-            <span class="logo-n">N</span><span class="logo-ai">AI</span><span class="logo-s">S</span>
-          </div>
-          <div class="logo-subtitle">
-            <span>Novel AI Solutions</span>
-          </div>
-        </button>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <title>NAIS — Novel AI Solutions</title>
+    <meta
+      name="description"
+      content="NAIS (Novel AI Solutions) — Building the AI Operating System for Everyday Life."
+    />
 
-        <div class="nav-links desktop-nav">
-          <button onclick="scrollToSection('home')" class="nav-link">Home</button>
-          <button onclick="scrollToSection('about')" class="nav-link">About</button>
-          <button onclick="scrollToSection('contact')" class="nav-link">Contact</button>
-        </div>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
-        <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu()">
-          <svg id="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-          <svg id="close-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-    </div>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- ============================= NAVBAR ============================= -->
+    <header class="nav">
+      <a href="#home" class="brand" aria-label="NAIS Home">
+        <span class="brand-word">
+          <span class="brand-ns">N</span><span class="brand-ai">AI</span
+          ><span class="brand-ns">S</span>
+        </span>
+        <span class="brand-sub">Novel AI Solutions</span>
+      </a>
 
-    <div id="mobile-menu" class="mobile-menu">
-      <div class="mobile-menu-content">
-        <button onclick="scrollToSection('home'); toggleMobileMenu();" class="mobile-nav-link">Home</button>
-        <button onclick="scrollToSection('about'); toggleMobileMenu();" class="mobile-nav-link">About</button>
-        <button onclick="scrollToSection('contact'); toggleMobileMenu();" class="mobile-nav-link">Contact</button>
-      </div>
-    </div>
-  </nav>
+      <button class="nav-toggle" aria-label="Toggle menu" id="navToggle">
+        <span></span><span></span><span></span>
+      </button>
 
-  <section id="home" class="hero-section">
-    <div class="hero-bg"></div>
-    <div class="hero-content">
+      <nav class="nav-links" id="navMenu">
+        <a href="#features">Features</a>
+        <a href="#apps">Apps</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#security">Security</a>
+        <a href="#contact" class="btn btn-outline">Contact</a>
+      </nav>
+    </header>
+
+    <!-- ============================= HERO ============================== -->
+    <section class="hero" id="home" aria-label="Hero section">
+      <canvas id="hero-canvas" aria-hidden="true"></canvas>
+
       <div class="hero-inner">
         <h1 class="hero-title">
-          Building the <span class="gradient-text">AI Operating System</span> for Everyday Life.
+          Building the <span class="glow">AI Operating System</span> for
+          Everyday Life.
         </h1>
 
-        <p class="hero-subtitle">
-          Novel AI Solutions is redefining how families and small businesses live, work, and grow — with intelligent agents that plan, shop, pay, and manage tasks seamlessly across a unified SuperApp platform.
+        <p class="hero-sub">
+          NAIS orchestrates intelligent agents that plan, shop, pay, and manage
+          tasks across a unified, secure SuperApp.
         </p>
 
         <div class="hero-cta">
-          <button class="cta-button">
-            <span class="cta-text">Be part of the AI-native revolution — join the ShopAI early access program</span>
-            <div class="cta-glow"></div>
-          </button>
+          <a href="#contact" class="btn btn-primary"
+            >Join the ShopAI Early Access</a
+          >
+          <a href="#architecture" class="btn btn-ghost">See how it works</a>
+        </div>
+
+        <div class="hero-logo" aria-hidden="true">
+          <span class="logo-word"
+            ><span class="logo-ns">N</span><span class="logo-ai">AI</span
+            ><span class="logo-ns">S</span></span
+          >
+          <span class="logo-sub">Novel AI Solutions</span>
         </div>
       </div>
+    </section>
 
-      <button class="scroll-down" onclick="scrollToSection('about')">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-      </button>
-    </div>
-  </section>
+    <!-- ============================= FEATURES ========================== -->
+    <section id="features" class="section">
+      <div class="container">
+        <header class="section-head">
+          <h2>Why NAIS</h2>
+          <p>
+            A SuperApp + Orchestrator stack with multi-tenant security, MCP
+            adapters, and agent workflows — ready for 1000+ apps.
+          </p>
+        </header>
 
-  <section id="about" class="about-section">
-    <div class="section-container">
-      <div class="about-grid">
-        <div class="about-text">
-          <h2 class="section-title">
-            About <span class="gradient-text">NAIS</span>
-          </h2>
-
-          <div class="about-content">
+        <div class="grid-3">
+          <article class="card tilt reveal">
+            <h3>Agentic Orchestration</h3>
             <p>
-              Novel AI Solutions is pioneering a <span class="font-semibold">Family Operating System</span> — a secure, agentic SuperApp ecosystem powered by our proprietary MCP and Orchestrator architecture.
+              A meta-orchestrator interprets intent and spawns domain
+              orchestrators and worker AIs — no manual wiring required.
             </p>
+          </article>
 
+          <article class="card tilt reveal">
+            <h3>MCP Adapter Layer</h3>
             <p>
-              From smart shopping to intelligent payments and trip planning, our apps don't just automate tasks — they <span class="font-semibold">understand intent</span>, <span class="font-semibold">coordinate actions</span>, and <span class="font-semibold">continuously learn</span>.
+              Vendor-agnostic connectors (Context7, Archon, Playwright,
+              Database) with contracts, signing, and versioning.
             </p>
+          </article>
 
+          <article class="card tilt reveal">
+            <h3>Scale & Multi-Tenancy</h3>
             <p>
-              Built for families, creators, and small businesses, our mission is to make AI orchestration effortless, autonomous, and human-centric.
+              Postgres Row-Level Security + vector namespace isolation; apps can
+              scale from 3 to 1000+ with consistent guardrails.
             </p>
-          </div>
+          </article>
         </div>
+      </div>
+    </section>
 
-        <div class="about-visual">
-          <div class="visual-container">
-            <div class="visual-inner">
-              <svg viewBox="0 0 400 400" class="ai-animation" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#00BFFF;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#8E2DE2;stop-opacity:1" />
-                  </linearGradient>
-                </defs>
+    <!-- ============================= APPS ============================== -->
+    <section id="apps" class="section alt">
+      <div class="container">
+        <header class="section-head">
+          <h2>First Wave of Apps</h2>
+          <p>
+            ShopAI launches with high-utility apps that showcase NAIS
+            orchestration and shared services.
+          </p>
+        </header>
 
-                <circle cx="200" cy="200" r="80" fill="none" stroke="url(#gradient1)" stroke-width="3" class="pulse-slow" />
-                <circle cx="200" cy="200" r="120" fill="none" stroke="url(#gradient1)" stroke-width="2" opacity="0.6" class="pulse-slower" />
-                <circle cx="200" cy="200" r="160" fill="none" stroke="url(#gradient1)" stroke-width="1" opacity="0.3" class="pulse-slowest" />
+        <div class="grid-3">
+          <article class="app-card tilt reveal">
+            <h3>CouponFinder AI</h>
+            <ul>
+              <li>Aggregates coupons via Playwright MCP scraping</li>
+              <li>Stores structured deals via Database MCP</li>
+              <li>Checkout via Payments Gateway shared service</li>
+            </ul>
+          </article>
 
-                <circle cx="200" cy="120" r="12" fill="url(#gradient1)" class="float-1" />
-                <circle cx="280" cy="200" r="10" fill="url(#gradient1)" class="float-2" />
-                <circle cx="200" cy="280" r="14" fill="url(#gradient1)" class="float-3" />
-                <circle cx="120" cy="200" r="11" fill="url(#gradient1)" class="float-4" />
+          <article class="app-card tilt reveal">
+            <h3>Topper AI</h3>
+            <ul>
+              <li>Adaptive study plans & assessments</li>
+              <li>Context7 MCP for accurate explanations</li>
+              <li>Archon MCP for student memory & progress</li>
+            </ul>
+          </article>
 
-                <circle cx="240" cy="160" r="8" fill="url(#gradient1)" opacity="0.7" class="float-5" />
-                <circle cx="240" cy="240" r="9" fill="url(#gradient1)" opacity="0.7" class="float-6" />
-                <circle cx="160" cy="240" r="8" fill="url(#gradient1)" opacity="0.7" class="float-7" />
-                <circle cx="160" cy="160" r="10" fill="url(#gradient1)" opacity="0.7" class="float-8" />
+          <article class="app-card tilt reveal">
+            <h3>Trip Planner AI</h3>
+            <ul>
+              <li>Automated itineraries across flights & stays</li>
+              <li>Browser actions via Playwright MCP</li>
+              <li>Persistent preferences via Archon MCP</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
 
-                <circle cx="200" cy="200" r="20" fill="url(#gradient1)" />
-              </svg>
+    <!-- ============================ CONTACT ============================ -->
+    <section id="contact" class="section">
+      <div class="container">
+        <header class="section-head">
+          <h2>Contact Us</h2>
+          <p>Let’s connect and build the AI-native future together.</p>
+        </header>
+
+        <div class="contact-grid reveal">
+          <div class="contact-card">
+            <h4>Email</h4>
+            <a href="mailto:hello@novelaisolutions.com">hello@novelaisolutions.com</a>
+          </div>
+          <div class="contact-card">
+            <h4>Website</h4>
+            <a href="https://www.novelaisolutions.com" target="_blank">www.novelaisolutions.com</a>
+          </div>
+          <div class="contact-card">
+            <h4>Follow</h4>
+            <div class="socials">
+              <a href="https://www.instagram.com/novel.ai.solutions" target="_blank" aria-label="Instagram">Instagram</a>
+              <a href="https://www.tiktok.com/@novel.ai.solutions" target="_blank" aria-label="TikTok">TikTok</a>
+              <a href="https://www.youtube.com/@novelaisolutions" target="_blank" aria-label="YouTube">YouTube</a>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <section id="contact" class="contact-section">
-    <div class="section-container contact-container">
-      <div class="contact-inner">
-        <h2 class="section-title">
-          Get in <span class="gradient-text">Touch</span>
-        </h2>
-
-        <div class="contact-links">
-          <a href="mailto:hello@novelaisolutions.com" class="contact-link">
-            <div class="contact-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                <polyline points="22,6 12,13 2,6"></polyline>
-              </svg>
-            </div>
-            <span class="contact-text">hello@novelaisolutions.com</span>
-          </a>
-
-          <a href="https://www.novelaisolutions.com" target="_blank" rel="noopener noreferrer" class="contact-link">
-            <div class="contact-icon globe-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-              </svg>
-            </div>
-            <span class="contact-text">www.novelaisolutions.com</span>
-          </a>
-        </div>
-
-        <div class="social-section">
-          <p class="social-label">Follow us on social media</p>
-          <div class="social-links">
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-link">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-                <rect x="2" y="9" width="4" height="12"></rect>
-                <circle cx="4" cy="4" r="2"></circle>
-              </svg>
-            </a>
-
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="social-link">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
-              </svg>
-            </a>
-
-            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" class="social-link">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
-                <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
-              </svg>
-            </a>
-          </div>
+        <div class="cta-center">
+          <a href="#home" class="btn btn-primary">Back to Top</a>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-content">
-        <div class="footer-logo">
-          <div class="logo">
-            <span class="logo-n">N</span><span class="logo-ai">AI</span><span class="logo-s">S</span>
-          </div>
-          <span class="footer-subtitle">Novel AI Solutions</span>
-        </div>
-
-        <div class="footer-links">
-          <a href="mailto:hello@novelaisolutions.com" class="footer-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-              <polyline points="22,6 12,13 2,6"></polyline>
-            </svg>
-            <span>hello@novelaisolutions.com</span>
-          </a>
-
-          <a href="https://www.novelaisolutions.com" target="_blank" rel="noopener noreferrer" class="footer-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="2" y1="12" x2="22" y2="12"></line>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-            </svg>
-            <span>www.novelaisolutions.com</span>
-          </a>
-        </div>
+    <!-- ============================ FOOTER ============================= -->
+    <footer class="footer">
+      <div class="container">
+        <p>© 2025 Novel AI Solutions (NAIS). All rights reserved.</p>
       </div>
+    </footer>
 
-      <div class="footer-bottom">
-        <p>&copy; 2025 Novel AI Solutions. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
-
-  <script src="script.js"></script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
