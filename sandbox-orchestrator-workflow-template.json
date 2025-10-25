@@ -1,5 +1,5 @@
 {
-  "name": "AI Build Orchestrator – Sandbox First Deployment (Static Credentials v1.2)",
+  "name": "AI Build Orchestrator – Sandbox First Deployment (HTTP-Compatible v2.0)",
   "active": false,
   "nodes": [
     {
@@ -10,20 +10,34 @@
       "typeVersion": 1,
       "position": [200, 300]
     },
+
     {
       "parameters": {
-        "operation": "chat",
-        "model": "gpt-4o-mini",
-        "systemMessage": "You are the Architect Agent. Generate architecture and file plan based on PRD input.",
-        "text": "={{$json[\"prd\"]}}"
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "none",
+        "sendBody": true,
+        "jsonBody": {
+          "model": "gpt-4o-mini",
+          "messages": [
+            { "role": "system", "content": "You are the Architect Agent. Generate architecture and file plan based on PRD input." },
+            { "role": "user", "content": "{{$json[\"prd\"]}}" }
+          ]
+        },
+        "options": {
+          "headers": {
+            "Authorization": "Bearer {{$env.OPENAI_API_KEY}}",
+            "Content-Type": "application/json"
+          }
+        }
       },
       "id": "2",
-      "name": "Architect Agent",
-      "type": "n8n-nodes-base.openai",
-      "typeVersion": 2,
-      "position": [500, 300],
-      "credentials": { "openAIApi": { "name": "OpenAI API" } }
+      "name": "Architect Agent (HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [500, 300]
     },
+
     {
       "parameters": {
         "url": "https://a10-runner.onrender.com/run/coder",
@@ -41,6 +55,7 @@
       "typeVersion": 3,
       "position": [800, 300]
     },
+
     {
       "parameters": {
         "url": "https://a10-runner.onrender.com/run/tester",
@@ -54,23 +69,40 @@
       "typeVersion": 3,
       "position": [1100, 300]
     },
+
     {
       "parameters": {
-        "operation": "chat",
-        "model": "gpt-4o-mini",
-        "systemMessage": "You are the Quality Guardian Agent. Review lint/test report vs CODE_STANDARDS.md and return pass/fail JSON.",
-        "text": "Review results: {{$json[\"tester_logs\"]}}"
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "jsonBody": {
+          "model": "gpt-4o-mini",
+          "messages": [
+            { "role": "system", "content": "You are the Quality Guardian Agent. Review lint/test report vs CODE_STANDARDS.md and return pass/fail JSON." },
+            { "role": "user", "content": "Review results: {{$json[\"tester_logs\"]}}" }
+          ]
+        },
+        "options": {
+          "headers": {
+            "Authorization": "Bearer {{$env.OPENAI_API_KEY}}",
+            "Content-Type": "application/json"
+          }
+        }
       },
       "id": "5",
-      "name": "Quality Guardian Agent",
-      "type": "n8n-nodes-base.openai",
-      "typeVersion": 2,
-      "position": [1400, 300],
-      "credentials": { "openAIApi": { "name": "OpenAI API" } }
+      "name": "Quality Guardian Agent (HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1400, 300]
     },
+
     {
       "parameters": {
-        "conditions": { "boolean": [ { "value1": "={{$json[\"status\"] == 'pass'}}" } ] }
+        "conditions": {
+          "boolean": [
+            { "value1": "={{$json[\"status\"] == 'pass'}}" }
+          ]
+        }
       },
       "id": "6",
       "name": "IF Quality Check Passed?",
@@ -78,6 +110,7 @@
       "typeVersion": 2,
       "position": [1700, 300]
     },
+
     {
       "parameters": {
         "url": "https://a10-runner.onrender.com/run/integrator",
@@ -95,6 +128,7 @@
       "typeVersion": 3,
       "position": [2000, 200]
     },
+
     {
       "parameters": {
         "resource": "issue",
@@ -111,31 +145,33 @@
       "position": [2000, 400],
       "credentials": { "githubApi": { "name": "GitHub Token" } }
     },
+
     {
       "parameters": {
-        "message": "Quality check failed. Review GitHub issue."
-      },
-      "id": "9",
-      "name": "Slack Notify Developer",
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 1,
-      "position": [2300, 400],
-      "credentials": { "slackApi": { "name": "Slack Webhook" } }
-    },
-    {
-      "parameters": {
-        "operation": "chat",
-        "model": "gpt-4o-mini",
-        "systemMessage": "You are the Supervisor Agent. Summarize sandbox deployment results and provide preview URL.",
-        "text": "={{$json}}"
+        "url": "https://api.openai.com/v1/chat/completions",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": {
+          "model": "gpt-4o-mini",
+          "messages": [
+            { "role": "system", "content": "You are the Supervisor Agent. Summarize sandbox deployment results and provide preview URL." },
+            { "role": "user", "content": "{{$json}}" }
+          ]
+        },
+        "options": {
+          "headers": {
+            "Authorization": "Bearer {{$env.OPENAI_API_KEY}}",
+            "Content-Type": "application/json"
+          }
+        }
       },
       "id": "10",
-      "name": "Supervisor Agent (Sandbox)",
-      "type": "n8n-nodes-base.openai",
-      "typeVersion": 2,
-      "position": [2300, 200],
-      "credentials": { "openAIApi": { "name": "OpenAI API" } }
+      "name": "Supervisor Agent (Sandbox, HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2300, 200]
     },
+
     {
       "parameters": {},
       "id": "11",
@@ -144,6 +180,7 @@
       "typeVersion": 1,
       "position": [2600, 200]
     },
+
     {
       "parameters": {
         "url": "https://a10-runner.onrender.com/run/integrator",
@@ -160,6 +197,7 @@
       "typeVersion": 3,
       "position": [2900, 200]
     },
+
     {
       "parameters": {
         "url": "https://a10-orchestrator-sandbox.vercel.app/api/health",
@@ -171,35 +209,48 @@
       "typeVersion": 3,
       "position": [3200, 200]
     },
+
     {
       "parameters": {
-        "operation": "chat",
-        "model": "gpt-4o-mini",
-        "systemMessage": "You are the final Supervisor Agent. Summarize production release results, include URLs and commit hash.",
-        "text": "={{$json}}"
+        "url": "https://api.openai.com/v1/chat/completions",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": {
+          "model": "gpt-4o-mini",
+          "messages": [
+            { "role": "system", "content": "You are the final Supervisor Agent. Summarize production release results, include URLs and commit hash." },
+            { "role": "user", "content": "{{$json}}" }
+          ]
+        },
+        "options": {
+          "headers": {
+            "Authorization": "Bearer {{$env.OPENAI_API_KEY}}",
+            "Content-Type": "application/json"
+          }
+        }
       },
       "id": "14",
-      "name": "Supervisor Agent (Production)",
-      "type": "n8n-nodes-base.openai",
-      "typeVersion": 2,
-      "position": [3500, 200],
-      "credentials": { "openAIApi": { "name": "OpenAI API" } }
+      "name": "Supervisor Agent (Production, HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [3500, 200]
     }
   ],
+
   "connections": {
     "Manual Trigger": {
-      "main": [[{ "node": "Architect Agent", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Architect Agent (HTTP)", "type": "main", "index": 0 }]]
     },
-    "Architect Agent": {
+    "Architect Agent (HTTP)": {
       "main": [[{ "node": "A10 Coder Agent Runner", "type": "main", "index": 0 }]]
     },
     "A10 Coder Agent Runner": {
       "main": [[{ "node": "A10 Tester Agent Runner", "type": "main", "index": 0 }]]
     },
     "A10 Tester Agent Runner": {
-      "main": [[{ "node": "Quality Guardian Agent", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Quality Guardian Agent (HTTP)", "type": "main", "index": 0 }]]
     },
-    "Quality Guardian Agent": {
+    "Quality Guardian Agent (HTTP)": {
       "main": [[{ "node": "IF Quality Check Passed?", "type": "main", "index": 0 }]]
     },
     "IF Quality Check Passed?": {
@@ -209,9 +260,9 @@
       ]
     },
     "A10 Integrator (Sandbox)": {
-      "main": [[{ "node": "Supervisor Agent (Sandbox)", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Supervisor Agent (Sandbox, HTTP)", "type": "main", "index": 0 }]]
     },
-    "Supervisor Agent (Sandbox)": {
+    "Supervisor Agent (Sandbox, HTTP)": {
       "main": [[{ "node": "Manual Approval: Promote to Prod?", "type": "main", "index": 0 }]]
     },
     "Manual Approval: Promote to Prod?": {
@@ -221,7 +272,7 @@
       "main": [[{ "node": "HealthCheck Agent", "type": "main", "index": 0 }]]
     },
     "HealthCheck Agent": {
-      "main": [[{ "node": "Supervisor Agent (Production)", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Supervisor Agent (Production, HTTP)", "type": "main", "index": 0 }]]
     }
   },
   "settings": { "timezone": "UTC" }
