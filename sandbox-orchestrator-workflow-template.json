@@ -1,8 +1,9 @@
 {
-  "name": "AI Build Orchestrator – Sandbox First Deployment (Tokenized, Clean v1.0)",
+  "name": "AI Build Orchestrator – Sandbox First Deployment (Universal v1.1)",
   "active": false,
   "nodes": [
     {
+      "parameters": {},
       "id": "1",
       "name": "Manual Trigger",
       "type": "n8n-nodes-base.manualTrigger",
@@ -10,26 +11,22 @@
       "position": [200, 300]
     },
     {
-      "id": "2",
-      "name": "Architect Agent",
-      "type": "n8n-nodes-base.openai.chat",
-      "typeVersion": 1,
-      "position": [500, 300],
       "parameters": {
+        "operation": "chat",
         "model": "gpt-4o-mini",
         "systemMessage": "You are the Architect Agent. Generate architecture and file plan based on PRD input.",
-        "userMessage": "={{$json[\"prd\"]}}"
+        "text": "={{$json[\"prd\"]}}"
       },
+      "id": "2",
+      "name": "Architect Agent",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 2,
+      "position": [500, 300],
       "credentials": {
         "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" }
       }
     },
     {
-      "id": "3",
-      "name": "A10 Coder Agent Runner",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
-      "position": [800, 300],
       "parameters": {
         "url": "={{$env.A10_ENDPOINT}}/run/coder",
         "method": "POST",
@@ -39,59 +36,57 @@
           "branch": "dev",
           "plan": "={{$json[\"data\"]}}"
         }
-      }
-    },
-    {
-      "id": "4",
-      "name": "A10 Tester Agent Runner",
+      },
+      "id": "3",
+      "name": "A10 Coder Agent Runner",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [1100, 300],
+      "position": [800, 300]
+    },
+    {
       "parameters": {
         "url": "={{$env.A10_ENDPOINT}}/run/tester",
         "method": "POST",
         "sendBody": true,
-        "jsonBody": {
-          "repo": "={{$env.GITHUB_REPO}}",
-          "branch": "dev"
-        }
-      }
+        "jsonBody": { "repo": "={{$env.GITHUB_REPO}}", "branch": "dev" }
+      },
+      "id": "4",
+      "name": "A10 Tester Agent Runner",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1100, 300]
     },
     {
-      "id": "5",
-      "name": "Quality Guardian Agent",
-      "type": "n8n-nodes-base.openai.chat",
-      "typeVersion": 1,
-      "position": [1400, 300],
       "parameters": {
+        "operation": "chat",
         "model": "gpt-4o-mini",
         "systemMessage": "You are the Quality Guardian Agent. Review lint/test report vs CODE_STANDARDS.md and return pass/fail JSON.",
-        "userMessage": "Review results: {{$json[\"tester_logs\"]}}"
+        "text": "Review results: {{$json[\"tester_logs\"]}}"
       },
+      "id": "5",
+      "name": "Quality Guardian Agent",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 2,
+      "position": [1400, 300],
       "credentials": {
         "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" }
       }
     },
     {
-      "id": "6",
-      "name": "IF Quality Check Passed?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [1700, 300],
       "parameters": {
         "conditions": {
           "boolean": [
             { "value1": "={{$json[\"status\"] == 'pass'}}" }
           ]
         }
-      }
+      },
+      "id": "6",
+      "name": "IF Quality Check Passed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1700, 300]
     },
     {
-      "id": "7",
-      "name": "A10 Integrator (Sandbox)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
-      "position": [2000, 200],
       "parameters": {
         "url": "={{$env.A10_ENDPOINT}}/run/integrator",
         "method": "POST",
@@ -101,14 +96,14 @@
           "branch": "dev",
           "action": "push"
         }
-      }
+      },
+      "id": "7",
+      "name": "A10 Integrator (Sandbox)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2000, 200]
     },
     {
-      "id": "8",
-      "name": "Create GitHub Issue",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 2,
-      "position": [2000, 400],
       "parameters": {
         "resource": "issue",
         "operation": "create",
@@ -117,39 +112,46 @@
         "title": "Quality check failed",
         "body": "The Quality Guardian Agent found issues. See Tester logs."
       },
+      "id": "8",
+      "name": "Create GitHub Issue",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 2,
+      "position": [2000, 400],
       "credentials": {
         "githubApi": { "name": "={{$env.GITHUB_CREDENTIAL_NAME}}" }
       }
     },
     {
+      "parameters": {
+        "message": "Quality check failed. Review GitHub issue."
+      },
       "id": "9",
       "name": "Slack Notify Developer",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 1,
       "position": [2300, 400],
-      "parameters": {
-        "message": "Quality check failed. Review GitHub issue."
-      },
       "credentials": {
         "slackApi": { "name": "={{$env.SLACK_CREDENTIAL_NAME}}" }
       }
     },
     {
-      "id": "10",
-      "name": "Supervisor Agent (Sandbox)",
-      "type": "n8n-nodes-base.openai.chat",
-      "typeVersion": 1,
-      "position": [2300, 200],
       "parameters": {
+        "operation": "chat",
         "model": "gpt-4o-mini",
         "systemMessage": "You are the Supervisor Agent. Summarize sandbox deployment results and provide preview URL.",
-        "userMessage": "={{$json}}"
+        "text": "={{$json}}"
       },
+      "id": "10",
+      "name": "Supervisor Agent (Sandbox)",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 2,
+      "position": [2300, 200],
       "credentials": {
         "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" }
       }
     },
     {
+      "parameters": {},
       "id": "11",
       "name": "Manual Approval: Promote to Prod?",
       "type": "n8n-nodes-base.manualTrigger",
@@ -157,11 +159,6 @@
       "position": [2600, 200]
     },
     {
-      "id": "12",
-      "name": "A10 Integrator (Production)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
-      "position": [2900, 200],
       "parameters": {
         "url": "={{$env.A10_ENDPOINT}}/run/integrator",
         "method": "POST",
@@ -170,30 +167,36 @@
           "repo": "={{$env.GITHUB_REPO}}",
           "merge": "dev→main"
         }
-      }
+      },
+      "id": "12",
+      "name": "A10 Integrator (Production)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2900, 200]
     },
     {
+      "parameters": {
+        "url": "={{$env.VERCEL_PROD_URL}}/api/health",
+        "method": "GET"
+      },
       "id": "13",
       "name": "HealthCheck Agent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [3200, 200],
-      "parameters": {
-        "url": "={{$env.VERCEL_PROD_URL}}/api/health",
-        "method": "GET"
-      }
+      "position": [3200, 200]
     },
     {
-      "id": "14",
-      "name": "Supervisor Agent (Production)",
-      "type": "n8n-nodes-base.openai.chat",
-      "typeVersion": 1,
-      "position": [3500, 200],
       "parameters": {
+        "operation": "chat",
         "model": "gpt-4o-mini",
         "systemMessage": "You are the final Supervisor Agent. Summarize production release results, include URLs and commit hash.",
-        "userMessage": "={{$json}}"
+        "text": "={{$json}}"
       },
+      "id": "14",
+      "name": "Supervisor Agent (Production)",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 2,
+      "position": [3500, 200],
       "credentials": {
         "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" }
       }
@@ -237,6 +240,5 @@
       "main": [[{ "node": "Supervisor Agent (Production)", "type": "main", "index": 0 }]]
     }
   },
-  "settings": { "timezone": "UTC", "saveExecutionProgress": true }
+  "settings": { "timezone": "UTC" }
 }
-=========================================================
