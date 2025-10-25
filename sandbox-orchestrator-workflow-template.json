@@ -1,5 +1,5 @@
 {
-  "name": "AI Build Orchestrator – Sandbox First Deployment (Universal v1.1)",
+  "name": "AI Build Orchestrator – Sandbox First Deployment (Static Credentials v1.2)",
   "active": false,
   "nodes": [
     {
@@ -22,17 +22,15 @@
       "type": "n8n-nodes-base.openai",
       "typeVersion": 2,
       "position": [500, 300],
-      "credentials": {
-        "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" }
-      }
+      "credentials": { "openAIApi": { "name": "OpenAI API" } }
     },
     {
       "parameters": {
-        "url": "={{$env.A10_ENDPOINT}}/run/coder",
+        "url": "https://a10-runner.onrender.com/run/coder",
         "method": "POST",
         "sendBody": true,
         "jsonBody": {
-          "repo": "={{$env.GITHUB_REPO}}",
+          "repo": "a10-orchestrator-sandbox",
           "branch": "dev",
           "plan": "={{$json[\"data\"]}}"
         }
@@ -45,10 +43,10 @@
     },
     {
       "parameters": {
-        "url": "={{$env.A10_ENDPOINT}}/run/tester",
+        "url": "https://a10-runner.onrender.com/run/tester",
         "method": "POST",
         "sendBody": true,
-        "jsonBody": { "repo": "={{$env.GITHUB_REPO}}", "branch": "dev" }
+        "jsonBody": { "repo": "a10-orchestrator-sandbox", "branch": "dev" }
       },
       "id": "4",
       "name": "A10 Tester Agent Runner",
@@ -68,17 +66,11 @@
       "type": "n8n-nodes-base.openai",
       "typeVersion": 2,
       "position": [1400, 300],
-      "credentials": {
-        "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" }
-      }
+      "credentials": { "openAIApi": { "name": "OpenAI API" } }
     },
     {
       "parameters": {
-        "conditions": {
-          "boolean": [
-            { "value1": "={{$json[\"status\"] == 'pass'}}" }
-          ]
-        }
+        "conditions": { "boolean": [ { "value1": "={{$json[\"status\"] == 'pass'}}" } ] }
       },
       "id": "6",
       "name": "IF Quality Check Passed?",
@@ -88,11 +80,11 @@
     },
     {
       "parameters": {
-        "url": "={{$env.A10_ENDPOINT}}/run/integrator",
+        "url": "https://a10-runner.onrender.com/run/integrator",
         "method": "POST",
         "sendBody": true,
         "jsonBody": {
-          "repo": "={{$env.GITHUB_REPO}}",
+          "repo": "a10-orchestrator-sandbox",
           "branch": "dev",
           "action": "push"
         }
@@ -107,8 +99,8 @@
       "parameters": {
         "resource": "issue",
         "operation": "create",
-        "owner": "={{$env.GITHUB_USER}}",
-        "repository": "={{$env.GITHUB_REPO}}",
+        "owner": "NovelAISolutions",
+        "repository": "a10-orchestrator-sandbox",
         "title": "Quality check failed",
         "body": "The Quality Guardian Agent found issues. See Tester logs."
       },
@@ -117,9 +109,7 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 2,
       "position": [2000, 400],
-      "credentials": {
-        "githubApi": { "name": "={{$env.GITHUB_CREDENTIAL_NAME}}" }
-      }
+      "credentials": { "githubApi": { "name": "GitHub Token" } }
     },
     {
       "parameters": {
@@ -130,9 +120,7 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 1,
       "position": [2300, 400],
-      "credentials": {
-        "slackApi": { "name": "={{$env.SLACK_CREDENTIAL_NAME}}" }
-      }
+      "credentials": { "slackApi": { "name": "Slack Webhook" } }
     },
     {
       "parameters": {
@@ -146,9 +134,7 @@
       "type": "n8n-nodes-base.openai",
       "typeVersion": 2,
       "position": [2300, 200],
-      "credentials": {
-        "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" }
-      }
+      "credentials": { "openAIApi": { "name": "OpenAI API" } }
     },
     {
       "parameters": {},
@@ -160,11 +146,11 @@
     },
     {
       "parameters": {
-        "url": "={{$env.A10_ENDPOINT}}/run/integrator",
+        "url": "https://a10-runner.onrender.com/run/integrator",
         "method": "POST",
         "sendBody": true,
         "jsonBody": {
-          "repo": "={{$env.GITHUB_REPO}}",
+          "repo": "a10-orchestrator-sandbox",
           "merge": "dev→main"
         }
       },
@@ -176,7 +162,7 @@
     },
     {
       "parameters": {
-        "url": "={{$env.VERCEL_PROD_URL}}/api/health",
+        "url": "https://a10-orchestrator-sandbox.vercel.app/api/health",
         "method": "GET"
       },
       "id": "13",
@@ -197,9 +183,7 @@
       "type": "n8n-nodes-base.openai",
       "typeVersion": 2,
       "position": [3500, 200],
-      "credentials": {
-        "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" }
-      }
+      "credentials": { "openAIApi": { "name": "OpenAI API" } }
     }
   ],
   "connections": {
