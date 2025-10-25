@@ -1,0 +1,227 @@
+{
+  "name": "AI Build Orchestrator – Sandbox → Gmail → Prod (v3.0)",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "url": "{{$vars.A10_ENDPOINT}}/run/architect",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": { "prd": "Sample PRD from orchestrator" }
+      },
+      "id": "2",
+      "name": "Architect Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "url": "{{$vars.A10_ENDPOINT}}/run/coder",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": {
+          "plan": "={{$json[\"result\"]}}",
+          "owner": "{{$vars.GITHUB_USER}}",
+          "repo": "{{$vars.GITHUB_REPO}}",
+          "branch": "dev",
+          "path": "index.html",
+          "message": "Auto commit from Coder Agent"
+        }
+      },
+      "id": "3",
+      "name": "A10 Coder Agent Runner",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "url": "{{$vars.A10_ENDPOINT}}/run/tester",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": { "branch": "dev" }
+      },
+      "id": "4",
+      "name": "A10 Tester Agent Runner",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1100, 300]
+    },
+    {
+      "parameters": {
+        "url": "{{$vars.A10_ENDPOINT}}/run/quality",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": { "tester_logs": "={{$json}}" }
+      },
+      "id": "5",
+      "name": "Quality Guardian Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{$json[\"status\"] == 'pass'}}" }]
+        }
+      },
+      "id": "6",
+      "name": "IF Quality Passed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1700, 300]
+    },
+    {
+      "parameters": {
+        "url": "{{$vars.A10_ENDPOINT}}/run/integrator",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": {
+          "repo": "{{$vars.GITHUB_REPO}}",
+          "branch": "dev",
+          "action": "sandbox-push"
+        }
+      },
+      "id": "7",
+      "name": "A10 Integrator (Sandbox)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2000, 200]
+    },
+    {
+      "parameters": {
+        "fromEmail": "ceo@novelaisolutions.com",
+        "toEmail": "ceo@novelaisolutions.com",
+        "subject": "✅ A10 Orchestrator: Sandbox Deployment Completed",
+        "text": "Your sandbox workflow completed successfully at {{$now}}. Please review Vercel at {{$vars.VERCEL_PROD_URL}} before approving production.",
+        "options": {}
+      },
+      "id": "8",
+      "name": "Gmail Notification (SMTP)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [2300, 200],
+      "credentials": { "smtp": { "name": "={{$vars.GMAIL_CREDENTIAL_NAME}}" } }
+    },
+    {
+      "parameters": {
+        "url": "{{$vars.A10_ENDPOINT}}/run/supervisor",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": { "env": "sandbox" }
+      },
+      "id": "9",
+      "name": "Supervisor Agent (Sandbox)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2600, 200]
+    },
+    {
+      "parameters": {},
+      "id": "10",
+      "name": "Manual Approval: Promote to Prod?",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [2900, 200]
+    },
+    {
+      "parameters": {
+        "url": "{{$vars.A10_ENDPOINT}}/run/integrator",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": {
+          "repo": "{{$vars.GITHUB_REPO}}",
+          "branch": "main",
+          "action": "promote-to-prod"
+        }
+      },
+      "id": "11",
+      "name": "A10 Integrator (Production)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [3200, 200]
+    },
+    {
+      "parameters": {
+        "url": "{{$vars.VERCEL_PROD_URL}}",
+        "method": "GET"
+      },
+      "id": "12",
+      "name": "HealthCheck Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [3500, 200]
+    },
+    {
+      "parameters": {
+        "url": "{{$vars.A10_ENDPOINT}}/run/supervisor",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": { "env": "production" }
+      },
+      "id": "13",
+      "name": "Supervisor Agent (Production)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [3800, 200]
+    },
+    {
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "owner": "{{$vars.GITHUB_USER}}",
+        "repository": "{{$vars.GITHUB_REPO}}",
+        "title": "Quality check failed",
+        "body": "The Quality Guardian Agent found issues. See Tester logs."
+      },
+      "id": "14",
+      "name": "Create GitHub Issue (if fail)",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 2,
+      "position": [2000, 400],
+      "credentials": { "githubApi": { "name": "={{$vars.GITHUB_CREDENTIAL_NAME}}" } }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": { "main": [[{ "node": "Architect Agent", "type": "main", "index": 0 }]] },
+    "Architect Agent": { "main": [[{ "node": "A10 Coder Agent Runner", "type": "main", "index": 0 }]] },
+    "A10 Coder Agent Runner": { "main": [[{ "node": "A10 Tester Agent Runner", "type": "main", "index": 0 }]] },
+    "A10 Tester Agent Runner": { "main": [[{ "node": "Quality Guardian Agent", "type": "main", "index": 0 }]] },
+    "Quality Guardian Agent": { "main": [[{ "node": "IF Quality Passed?", "type": "main", "index": 0 }]] },
+    "IF Quality Passed?": {
+      "main": [
+        [{ "node": "A10 Integrator (Sandbox)", "type": "main", "index": 0 }],
+        [{ "node": "Create GitHub Issue (if fail)", "type": "main", "index": 0 }]
+      ]
+    },
+    "A10 Integrator (Sandbox)": {
+      "main": [[{ "node": "Gmail Notification (SMTP)", "type": "main", "index": 0 }]]
+    },
+    "Gmail Notification (SMTP)": {
+      "main": [[{ "node": "Supervisor Agent (Sandbox)", "type": "main", "index": 0 }]]
+    },
+    "Supervisor Agent (Sandbox)": {
+      "main": [[{ "node": "Manual Approval: Promote to Prod?", "type": "main", "index": 0 }]]
+    },
+    "Manual Approval: Promote to Prod?": {
+      "main": [[{ "node": "A10 Integrator (Production)", "type": "main", "index": 0 }]]
+    },
+    "A10 Integrator (Production)": {
+      "main": [[{ "node": "HealthCheck Agent", "type": "main", "index": 0 }]]
+    },
+    "HealthCheck Agent": {
+      "main": [[{ "node": "Supervisor Agent (Production)", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "timezone": "UTC" }
+}
