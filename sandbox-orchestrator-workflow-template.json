@@ -1,0 +1,203 @@
+{
+  "name": "AI Build Orchestrator – Sandbox First Deployment (Tokenized)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "id": "2",
+      "name": "Architect Agent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 2,
+      "position": [500, 300],
+      "parameters": {
+        "operation": "chat",
+        "model": "gpt-4o",
+        "systemMessage": "You are the Architect Agent. Generate architecture and file plan based on PRD input.",
+        "text": "{{$json[\"prd\"]}}"
+      },
+      "credentials": { "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" } }
+    },
+    {
+      "id": "3",
+      "name": "A10 Coder Agent Runner",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [800, 300],
+      "parameters": {
+        "url": "={{$env.A10_ENDPOINT}}/run/coder",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": {
+          "repo": "={{$env.GITHUB_REPO}}",
+          "branch": "dev",
+          "plan": "={{$json[\"data\"]}}"
+        },
+        "authentication": "={{$env.A10_AUTH_TYPE}}"
+      }
+    },
+    {
+      "id": "4",
+      "name": "A10 Tester Agent Runner",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [1100, 300],
+      "parameters": {
+        "url": "={{$env.A10_ENDPOINT}}/run/tester",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": { "repo": "={{$env.GITHUB_REPO}}", "branch": "dev" }
+      }
+    },
+    {
+      "id": "5",
+      "name": "Quality Guardian Agent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 2,
+      "position": [1400, 300],
+      "parameters": {
+        "operation": "chat",
+        "model": "gpt-4o",
+        "systemMessage": "You are the Quality Guardian Agent. Review lint/test report vs CODE_STANDARDS.md and return pass/fail JSON.",
+        "text": "Review results: {{$json[\"tester_logs\"]}}"
+      },
+      "credentials": { "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" } }
+    },
+    {
+      "id": "6",
+      "name": "IF Quality Check Passed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1700, 300],
+      "parameters": {
+        "conditions": { "boolean": [ { "value1": "={{$json[\"status\"] == 'pass'}}" } ] }
+      }
+    },
+    {
+      "id": "7",
+      "name": "A10 Integrator (Sandbox)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [2000, 200],
+      "parameters": {
+        "url": "={{$env.A10_ENDPOINT}}/run/integrator",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": {
+          "repo": "={{$env.GITHUB_REPO}}",
+          "branch": "dev",
+          "action": "push"
+        }
+      }
+    },
+    {
+      "id": "8",
+      "name": "Create GitHub Issue",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1,
+      "position": [2000, 400],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "owner": "={{$env.GITHUB_USER}}",
+        "repository": "={{$env.GITHUB_REPO}}",
+        "title": "Quality check failed",
+        "body": "The Quality Guardian Agent found issues. See Tester logs."
+      },
+      "credentials": { "githubApi": { "name": "={{$env.GITHUB_CREDENTIAL_NAME}}" } }
+    },
+    {
+      "id": "9",
+      "name": "Slack Notify Developer",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [2300, 400],
+      "parameters": { "message": "Quality check failed. Review GitHub issue." },
+      "credentials": { "slackApi": { "name": "={{$env.SLACK_CREDENTIAL_NAME}}" } }
+    },
+    {
+      "id": "10",
+      "name": "Supervisor Agent (Sandbox)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 2,
+      "position": [2300, 200],
+      "parameters": {
+        "operation": "chat",
+        "model": "gpt-4o",
+        "systemMessage": "You are the Supervisor Agent. Summarize sandbox deployment results and provide preview URL.",
+        "text": "={{$json}}"
+      },
+      "credentials": { "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" } }
+    },
+    {
+      "id": "11",
+      "name": "Manual Approval: Promote to Prod?",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [2600, 200]
+    },
+    {
+      "id": "12",
+      "name": "A10 Integrator (Production)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [2900, 200],
+      "parameters": {
+        "url": "={{$env.A10_ENDPOINT}}/run/integrator",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": {
+          "repo": "={{$env.GITHUB_REPO}}",
+          "merge": "dev→main"
+        }
+      }
+    },
+    {
+      "id": "13",
+      "name": "HealthCheck Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [3200, 200],
+      "parameters": { "url": "={{$env.VERCEL_PROD_URL}}/api/health", "method": "GET" }
+    },
+    {
+      "id": "14",
+      "name": "Supervisor Agent (Production)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 2,
+      "position": [3500, 200],
+      "parameters": {
+        "operation": "chat",
+        "model": "gpt-4o",
+        "systemMessage": "You are the final Supervisor Agent. Summarize production release results, include URLs and commit hash.",
+        "text": "={{$json}}"
+      },
+      "credentials": { "openAIApi": { "name": "={{$env.OPENAI_CREDENTIAL_NAME}}" } }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": { "main": [[{ "node": "Architect Agent", "type": "main", "index": 0 }]] },
+    "Architect Agent": { "main": [[{ "node": "A10 Coder Agent Runner", "type": "main", "index": 0 }]] },
+    "A10 Coder Agent Runner": { "main": [[{ "node": "A10 Tester Agent Runner", "type": "main", "index": 0 }]] },
+    "A10 Tester Agent Runner": { "main": [[{ "node": "Quality Guardian Agent", "type": "main", "index": 0 }]] },
+    "Quality Guardian Agent": { "main": [[{ "node": "IF Quality Check Passed?", "type": "main", "index": 0 }]] },
+    "IF Quality Check Passed?": {
+      "main": [
+        [{ "node": "A10 Integrator (Sandbox)", "type": "main", "index": 0 }],
+        [{ "node": "Create GitHub Issue", "type": "main", "index": 0 }]
+      ]
+    },
+    "A10 Integrator (Sandbox)": { "main": [[{ "node": "Supervisor Agent (Sandbox)", "type": "main", "index": 0 }]] },
+    "Supervisor Agent (Sandbox)": { "main": [[{ "node": "Manual Approval: Promote to Prod?", "type": "main", "index": 0 }]] },
+    "Manual Approval: Promote to Prod?": { "main": [[{ "node": "A10 Integrator (Production)", "type": "main", "index": 0 }]] },
+    "A10 Integrator (Production)": { "main": [[{ "node": "HealthCheck Agent", "type": "main", "index": 0 }]] },
+    "HealthCheck Agent": { "main": [[{ "node": "Supervisor Agent (Production)", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "timezone": "UTC", "saveExecutionProgress": true },
+  "versionId": "v1.0"
+}
