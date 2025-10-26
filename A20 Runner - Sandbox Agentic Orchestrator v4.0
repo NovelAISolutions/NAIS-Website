@@ -1,0 +1,222 @@
+{
+  "name": "A20 Runner - Sandbox Agentic Orchestrator v4.0",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 250]
+    },
+    {
+      "id": "2",
+      "name": "Architect",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [500, 250],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$vars.A10_ENDPOINT}}/run/architect",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "={ \"runId\":\"={{'run_'+$now.toISO()}}\", \"owner\":\"={{$vars.GITHUB_USER}}\", \"repo\":\"a20-orchestrator-sandbox\", \"branch\":\"main\", \"prd\": {\"goal\":\"Single-page Labubu Showcase\",\"requirements\":[\"About, Gallery, Contact sections\"],\"assets\":{\"images\":[\"https://picsum.photos/seed/l1/400/300\",\"https://picsum.photos/seed/l2/400/300\"]},\"style\":{\"primary\":\"#d39cd3\",\"background\":\"#ffeaf4\",\"text\":\"#3b2643\",\"cardBackground\":\"#ffffffb3\",\"radius\":\"16px\"},\"options\":{\"showVersionBanner\":false,\"showVerificationFooter\":false}}, \"createdAt\":\"={{$now.toISO()}}\" }"
+      }
+    },
+    {
+      "id": "3",
+      "name": "Coder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [750, 250],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$vars.A10_ENDPOINT}}/run/coder",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{$json}}"
+      }
+    },
+    {
+      "id": "4",
+      "name": "IF Commit Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [950, 150],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json}}",
+              "operation": "contains",
+              "value2": "commit_failed"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "5",
+      "name": "Integrator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1200, 150],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$vars.A10_ENDPOINT}}/run/integrator",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{$json}}"
+      }
+    },
+    {
+      "id": "6",
+      "name": "Tester",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1200, 350],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$vars.A10_ENDPOINT}}/run/tester",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{$json}}"
+      }
+    },
+    {
+      "id": "7",
+      "name": "IF Test Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1400, 350],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json}}",
+              "operation": "contains",
+              "value2": "test_failed"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "8",
+      "name": "Quality",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1650, 350],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$vars.A10_ENDPOINT}}/run/quality",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{$json}}"
+      }
+    },
+    {
+      "id": "9",
+      "name": "IF Quality Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1850, 350],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json}}",
+              "operation": "contains",
+              "value2": "quality_failed"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "10",
+      "name": "Integrator Final",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [2050, 350],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$vars.A10_ENDPOINT}}/run/integrator",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{$json}}"
+      }
+    },
+    {
+      "id": "11",
+      "name": "IF Integration Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2250, 350],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json}}",
+              "operation": "contains",
+              "value2": "commit_failed"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "12",
+      "name": "Supervisor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [2450, 350],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$vars.A10_ENDPOINT}}/run/supervisor",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{$json}}"
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": { "main": [[{ "node": "Architect", "type": "main", "index": 0 }]] },
+    "Architect": { "main": [[{ "node": "Coder", "type": "main", "index": 0 }]] },
+    "Coder": { "main": [[{ "node": "IF Commit Failed?", "type": "main", "index": 0 }]] },
+    "IF Commit Failed?": {
+      "main": [
+        [{ "node": "Integrator", "type": "main", "index": 0 }],
+        [{ "node": "Tester", "type": "main", "index": 0 }]
+      ]
+    },
+    "Integrator": { "main": [[{ "node": "Coder", "type": "main", "index": 0 }]] },
+    "Tester": { "main": [[{ "node": "IF Test Failed?", "type": "main", "index": 0 }]] },
+    "IF Test Failed?": {
+      "main": [
+        [{ "node": "Coder", "type": "main", "index": 0 }],
+        [{ "node": "Quality", "type": "main", "index": 0 }]
+      ]
+    },
+    "Quality": { "main": [[{ "node": "IF Quality Failed?", "type": "main", "index": 0 }]] },
+    "IF Quality Failed?": {
+      "main": [
+        [{ "node": "Coder", "type": "main", "index": 0 }],
+        [{ "node": "Integrator Final", "type": "main", "index": 0 }]
+      ]
+    },
+    "Integrator Final": { "main": [[{ "node": "IF Integration Failed?", "type": "main", "index": 0 }]] },
+    "IF Integration Failed?": {
+      "main": [
+        [{ "node": "Coder", "type": "main", "index": 0 }],
+        [{ "node": "Supervisor", "type": "main", "index": 0 }]
+      ]
+    }
+  }
+}
