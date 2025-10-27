@@ -1,88 +1,461 @@
 {
-  "name": "AI Agent Orchestrator - Simple",
+  "name": "AI Agent Orchestrator",
   "nodes": [
     {
       "parameters": {
-        "path": "/build-project"
+        "path": "build-project",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
       },
-      "id": "webhook-1",
-      "name": "Webhook Trigger",
+      "id": "1a2b3c4d-5e6f-7g8h-9i0j-k1l2m3n4o5p6",
+      "name": "Build Project Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [240, 300]
     },
     {
       "parameters": {
-        "jsCode": "return { projectId: 'proj_' + Date.now(), ...$json };"
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.project_data }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
       },
-      "id": "code-1",
-      "name": "Create Project",
+      "id": "2b3c4d5e-6f7g-8h9i-0j1k-l2m3n4o5p6q7",
+      "name": "Validate Request",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = { ...$json, projectId: 'proj_' + Date.now() };\nreturn [{ json: out }];"
+      },
+      "id": "3c4d5e6f-7g8h-9i0j-1k2l-m3n4o5p6q7r8",
+      "name": "Create Project Record",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 300]
+      "position": [680, 300]
+    },
+    {
+      "parameters": {},
+      "id": "on-error-0001",
+      "name": "On Error",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [240, 40]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "http://localhost:8000/agent/requirements",
-        "sendBody": true,
-        "bodyContentType": "json",
-        "jsonBody": "={{ $json }}"
+        "jsonParameters": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyParametersJson": "={{ JSON.stringify({ project_data: $json }) }}",
+        "options": {
+          "retryOnFail": true,
+          "maxRetries": 3,
+          "timeout": 15000
+        }
       },
-      "id": "http-1",
-      "name": "Requirements Agent",
+      "id": "5e6f7g8h-9i0j-1k2l-3m4n-o5p6q7r8s9t0",
+      "name": "Requirements Analyzer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [680, 300]
+      "position": [900, 120]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:8000/agent/architecture", 
-        "sendBody": true,
-        "bodyContentType": "json",
-        "jsonBody": "={{ $json }}"
+        "url": "http://localhost:8000/agent/architecture",
+        "jsonParameters": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyParametersJson": "={{ JSON.stringify({ requirements: $json }) }}",
+        "options": {
+          "retryOnFail": true,
+          "maxRetries": 3,
+          "timeout": 15000
+        }
       },
-      "id": "http-2",
-      "name": "Architecture Agent",
+      "id": "6f7g8h9i-0j1k-2l3m-4n5o-p6q7r8s9t0u1",
+      "name": "Architecture Designer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [900, 300]
+      "position": [900, 240]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/agent/tech-evaluator",
+        "jsonParameters": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyParametersJson": "={{ JSON.stringify({ requirements: $json }) }}",
+        "options": {
+          "retryOnFail": true,
+          "maxRetries": 3,
+          "timeout": 15000
+        }
+      },
+      "id": "7g8h9i0j-1k2l-3m4n-5o6p-q7r8s9t0u1v2",
+      "name": "Tech Stack Evaluator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 360]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.all().map(i => i.json);\nreturn [{ json: { final_architecture: results, projectId: $json.projectId } }];"
+      },
+      "id": "9i0j1k2l-3m4n-5o6p-7q8r-s9t0u1v2w3x4",
+      "name": "Merge Architecture Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/agent/backend",
+        "jsonParameters": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyParametersJson": "={{ JSON.stringify({ architecture: $json.final_architecture, projectId: $json.projectId }) }}",
+        "options": {
+          "retryOnFail": true,
+          "maxRetries": 3,
+          "timeout": 15000
+        }
+      },
+      "id": "1k2l3m4n-5o6p-7q8r-9s0t-u1v2w3x4y5z6",
+      "name": "Backend Generator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1360, 180]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/agent/frontend",
+        "jsonParameters": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyParametersJson": "={{ JSON.stringify({ architecture: $json.final_architecture, projectId: $json.projectId }) }}",
+        "options": {
+          "retryOnFail": true,
+          "maxRetries": 3,
+          "timeout": 15000
+        }
+      },
+      "id": "2l3m4n5o-6p7q-8r9s-0t1u-v2w3x4y5z6a7",
+      "name": "Frontend Generator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1360, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/agent/testing",
+        "jsonParameters": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyParametersJson": "={{ JSON.stringify({ generated_code: $input.all(), projectId: $json.projectId }) }}",
+        "options": {
+          "retryOnFail": true,
+          "maxRetries": 3,
+          "timeout": 15000
+        }
+      },
+      "id": "3m4n5o6p-7q8r-9s0t-1u2v-w3x4y5z6a7b8",
+      "name": "Testing Engine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1580, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/agent/deployment",
+        "jsonParameters": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyParametersJson": "={{ JSON.stringify({ project_data: $json }) }}",
+        "options": {
+          "retryOnFail": true,
+          "maxRetries": 3,
+          "timeout": 15000
+        }
+      },
+      "id": "4n5o6p7q-8r9s-0t1u-2v3w-x4y5z6a7b8c9",
+      "name": "Deployment Manager",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1800, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/api/projects/update-status",
+        "jsonParameters": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyParametersJson": "={{ JSON.stringify({ project_id: $json.projectId, status: \"completed\" }) }}",
+        "options": {
+          "retryOnFail": true,
+          "maxRetries": 3,
+          "timeout": 15000
+        }
+      },
+      "id": "5o6p7q8r-9s0t-1u2v-3w4x-y5z6a7b8c9d0",
+      "name": "Update Project Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2020, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/api/projects/update-status",
+        "jsonParameters": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyParametersJson": "={{ JSON.stringify({ project_id: $items(\"Create Project Record\")[0].json.projectId, status: \"failed\", error: $json.error?.message || \"unknown\" }) }}",
+        "options": {
+          "retryOnFail": true,
+          "maxRetries": 3,
+          "timeout": 15000
+        }
+      },
+      "id": "fail-status-001",
+      "name": "Update Project Status (Failed)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 40]
     }
   ],
   "connections": {
-    "webhook-1": {
+    "Build Project Webhook": {
       "main": [
         [
           {
-            "node": "code-1",
+            "node": "Validate Request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "code-1": {
+    "Validate Request": {
       "main": [
         [
           {
-            "node": "http-1",
+            "node": "Create Project Record",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "http-1": {
+    "Create Project Record": {
       "main": [
         [
           {
-            "node": "http-2", 
+            "node": "Requirements Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Architecture Designer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tech Stack Evaluator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Requirements Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Merge Architecture Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Architecture Designer": {
+      "main": [
+        [
+          {
+            "node": "Merge Architecture Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Tech Stack Evaluator": {
+      "main": [
+        [
+          {
+            "node": "Merge Architecture Results",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge Architecture Results": {
+      "main": [
+        [
+          {
+            "node": "Backend Generator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Frontend Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Backend Generator": {
+      "main": [
+        [
+          {
+            "node": "Testing Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Frontend Generator": {
+      "main": [
+        [
+          {
+            "node": "Testing Engine",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Testing Engine": {
+      "main": [
+        [
+          {
+            "node": "Deployment Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deployment Manager": {
+      "main": [
+        [
+          {
+            "node": "Update Project Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On Error": {
+      "main": [
+        [
+          {
+            "node": "Update Project Status (Failed)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     }
-  }
+  },
+  "pinData": {}
 }
