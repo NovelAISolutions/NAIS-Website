@@ -1,485 +1,88 @@
 {
-  "name": "AI Agent Orchestrator",
+  "name": "AI Agent Orchestrator - Simple",
   "nodes": [
     {
       "parameters": {
-        "path": "/build-project",
-        "responseMode": "responseNode"
+        "path": "/build-project"
       },
-      "id": "1a2b3c4d-5e6f-7g8h-9i0j-k1l2m3n4o5p6",
-      "name": "Build Project Webhook",
+      "id": "webhook-1",
+      "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [240, 300]
     },
     {
       "parameters": {
-        "conditions": {
-          "options": [
-            {
-              "name": "Check Project Data",
-              "value1": "={{ $json.project_data }}",
-              "operation": "notEmpty"
-            }
-          ]
-        }
+        "jsCode": "return { projectId: 'proj_' + Date.now(), ...$json };"
       },
-      "id": "2b3c4d5e-6f7g-8h9i-0j1k-l2m3n4o5p6q7",
-      "name": "Validate Request",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [460, 300]
-    },
-    {
-      "parameters": {
-        "jsCode": "const projectId = 'proj_' + Date.now();\nreturn { projectId, ...$json };"
-      },
-      "id": "3c4d5e6f-7g8h-9i0j-1k2l-m3n4o5p6q7r8",
-      "name": "Create Project Record",
+      "id": "code-1",
+      "name": "Create Project",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [680, 300]
-    },
-    {
-      "parameters": {},
-      "id": "4d5e6f7g-8h9i-0j1k-2l3m-n4o5p6q7r8s9",
-      "name": "Start Parallel Agents",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [900, 300]
+      "position": [460, 300]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "http://localhost:8000/agent/requirements",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "project_data",
-              "value": "={{ $json }}"
-            }
-          ]
-        }
+        "bodyContentType": "json",
+        "jsonBody": "={{ $json }}"
       },
-      "id": "5e6f7g8h-9i0j-1k2l-3m4n-o5p6q7r8s9t0",
-      "name": "Requirements Analyzer",
+      "id": "http-1",
+      "name": "Requirements Agent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [900, 120]
+      "position": [680, 300]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:8000/agent/architecture",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
+        "url": "http://localhost:8000/agent/architecture", 
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "requirements",
-              "value": "={{ $json }}"
-            }
-          ]
-        }
+        "bodyContentType": "json",
+        "jsonBody": "={{ $json }}"
       },
-      "id": "6f7g8h9i-0j1k-2l3m-4n5o-p6q7r8s9t0u1",
-      "name": "Architecture Designer",
+      "id": "http-2",
+      "name": "Architecture Agent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [900, 240]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://localhost:8000/agent/tech-evaluator",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "requirements",
-              "value": "={{ $json }}"
-            }
-          ]
-        }
-      },
-      "id": "7g8h9i0j-1k2l-3m4n-5o6p-q7r8s9t0u1v2",
-      "name": "Tech Stack Evaluator",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [900, 360]
-    },
-    {
-      "parameters": {},
-      "id": "8h9i0j1k-2l3m-4n5o-6p7q-r8s9t0u1v2w3",
-      "name": "Wait for All Agents",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [1120, 300]
-    },
-    {
-      "parameters": {
-        "jsCode": "const results = $input.all();\nreturn { final_architecture: results };"
-      },
-      "id": "9i0j1k2l-3m4n-5o6p-7q8r-s9t0u1v2w3x4",
-      "name": "Merge Architecture Results",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1340, 300]
-    },
-    {
-      "parameters": {},
-      "id": "0j1k2l3m-4n5o-6p7q-8r9s-t0u1v2w3x4y5",
-      "name": "Start Code Generation",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [1560, 300]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://localhost:8000/agent/backend",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "architecture",
-              "value": "={{ $json.final_architecture }}"
-            }
-          ]
-        }
-      },
-      "id": "1k2l3m4n-5o6p-7q8r-9s0t-u1v2w3x4y5z6",
-      "name": "Backend Generator",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [1560, 120]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://localhost:8000/agent/frontend",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "architecture",
-              "value": "={{ $json.final_architecture }}"
-            }
-          ]
-        }
-      },
-      "id": "2l3m4n5o-6p7q-8r9s-0t1u-v2w3x4y5z6a7",
-      "name": "Frontend Generator",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [1780, 120]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://localhost:8000/agent/testing",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "generated_code",
-              "value": "={{ $input.all() }}"
-            }
-          ]
-        }
-      },
-      "id": "3m4n5o6p-7q8r-9s0t-1u2v-w3x4y5z6a7b8",
-      "name": "Testing Engine",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [2000, 120]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://localhost:8000/agent/deployment",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "project_data",
-              "value": "={{ $json }}"
-            }
-          ]
-        }
-      },
-      "id": "4n5o6p7q-8r9s-0t1u-2v3w-x4y5z6a7b8c9",
-      "name": "Deployment Manager",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [2220, 120]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://localhost:8000/api/projects/update-status",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "project_id",
-              "value": "={{ $json.projectId }}"
-            },
-            {
-              "name": "status",
-              "value": "completed"
-            }
-          ]
-        }
-      },
-      "id": "5o6p7q8r-9s0t-1u2v-3w4x-y5z6a7b8c9d0",
-      "name": "Update Project Status",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [2440, 300]
+      "position": [900, 300]
     }
   ],
   "connections": {
-    "1a2b3c4d-5e6f-7g8h-9i0j-k1l2m3n4o5p6": {
+    "webhook-1": {
       "main": [
         [
           {
-            "node": "2b3c4d5e-6f7g-8h9i-0j1k-l2m3n4o5p6q7",
+            "node": "code-1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "2b3c4d5e-6f7g-8h9i-0j1k-l2m3n4o5p6q7": {
+    "code-1": {
       "main": [
         [
           {
-            "node": "3c4d5e6f-7g8h-9i0j-1k2l-m3n4o5p6q7r8",
+            "node": "http-1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "3c4d5e6f-7g8h-9i0j-1k2l-m3n4o5p6q7r8": {
+    "http-1": {
       "main": [
         [
           {
-            "node": "4d5e6f7g-8h9i-0j1k-2l3m-n4o5p6q7r8s9",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "4d5e6f7g-8h9i-0j1k-2l3m-n4o5p6q7r8s9": {
-      "main": [
-        [
-          {
-            "node": "5e6f7g8h-9i0j-1k2l-3m4n-o5p6q7r8s9t0",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "6f7g8h9i-0j1k-2l3m-4n5o-p6q7r8s9t0u1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "7g8h9i0j-1k2l-3m4n-5o6p-q7r8s9t0u1v2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "5e6f7g8h-9i0j-1k2l-3m4n-o5p6q7r8s9t0": {
-      "main": [
-        [
-          {
-            "node": "8h9i0j1k-2l3m-4n5o-6p7q-r8s9t0u1v2w3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "6f7g8h9i-0j1k-2l3m-4n5o-p6q7r8s9t0u1": {
-      "main": [
-        [
-          {
-            "node": "8h9i0j1k-2l3m-4n5o-6p7q-r8s9t0u1v2w3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "7g8h9i0j-1k2l-3m4n-5o6p-q7r8s9t0u1v2": {
-      "main": [
-        [
-          {
-            "node": "8h9i0j1k-2l3m-4n5o-6p7q-r8s9t0u1v2w3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "8h9i0j1k-2l3m-4n5o-6p7q-r8s9t0u1v2w3": {
-      "main": [
-        [
-          {
-            "node": "9i0j1k2l-3m4n-5o6p-7q8r-s9t0u1v2w3x4",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "9i0j1k2l-3m4n-5o6p-7q8r-s9t0u1v2w3x4": {
-      "main": [
-        [
-          {
-            "node": "0j1k2l3m-4n5o-6p7q-8r9s-t0u1v2w3x4y5",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "0j1k2l3m-4n5o-6p7q-8r9s-t0u1v2w3x4y5": {
-      "main": [
-        [
-          {
-            "node": "1k2l3m4n-5o6p-7q8r-9s0t-u1v2w3x4y5z6",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "1k2l3m4n-5o6p-7q8r-9s0t-u1v2w3x4y5z6": {
-      "main": [
-        [
-          {
-            "node": "2l3m4n5o-6p7q-8r9s-0t1u-v2w3x4y5z6a7",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "2l3m4n5o-6p7q-8r9s-0t1u-v2w3x4y5z6a7": {
-      "main": [
-        [
-          {
-            "node": "3m4n5o6p-7q8r-9s0t-1u2v-w3x4y5z6a7b8",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "3m4n5o6p-7q8r-9s0t-1u2v-w3x4y5z6a7b8": {
-      "main": [
-        [
-          {
-            "node": "4n5o6p7q-8r9s-0t1u-2v3w-x4y5z6a7b8c9",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "4n5o6p7q-8r9s-0t1u-2v3w-x4y5z6a7b8c9": {
-      "main": [
-        [
-          {
-            "node": "5o6p7q8r-9s0t-1u2v-3w4x-y5z6a7b8c9d0",
+            "node": "http-2", 
             "type": "main",
             "index": 0
           }
         ]
       ]
     }
-  },
-  "pinData": {}
+  }
 }
