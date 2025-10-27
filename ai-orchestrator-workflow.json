@@ -1,33 +1,25 @@
 {
-  "name": "AI Agent Orchestrator",
+  "name": "AI Agent Orchestrator (fixed wiring)",
   "nodes": [
     {
-      "parameters": {
-        "path": "build-project",
-        "httpMethod": "POST",
-        "responseMode": "onReceived"
-      },
-      "id": "1a2b3c4d-5e6f-7g8h-9i0j-k1l2m3n4o5p6",
+      "parameters": { "path": "build-project", "httpMethod": "POST", "responseMode": "onReceived" },
+      "id": "webhook-1",
       "name": "Build Project Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [240, 300]
     },
     {
-      "parameters": {
-        "jsCode": "if (!$json.project_data) { throw new Error('project_data missing'); }\\nreturn [{ json: $json }];"
-      },
-      "id": "validate-code-001",
+      "parameters": { "jsCode": "if(!$json.project_data){throw new Error('project_data missing');} return [{json:$json}];" },
+      "id": "validate-1",
       "name": "Validate Request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [460, 300]
     },
     {
-      "parameters": {
-        "jsCode": "const out = { ...$json, projectId: 'proj_' + Date.now() };\\nreturn [{ json: out }];"
-      },
-      "id": "3c4d5e6f-7g8h-9i0j-1k2l-m3n4o5p6q7r8",
+      "parameters": { "jsCode": "const out={...$json,projectId:'proj_'+Date.now()}; return [{json:out}];" },
+      "id": "create-1",
       "name": "Create Project Record",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -35,7 +27,7 @@
     },
     {
       "parameters": {},
-      "id": "on-error-0001",
+      "id": "errTrig-1",
       "name": "On Error",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
@@ -49,7 +41,7 @@
         "jsonParameters": true,
         "jsonBody": "={{ { project_data: $json } }}"
       },
-      "id": "5e6f7g8h-9i0j-1k2l-3m4n-o5p6q7r8s9t0",
+      "id": "req-1",
       "name": "Requirements Analyzer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
@@ -63,7 +55,7 @@
         "jsonParameters": true,
         "jsonBody": "={{ { requirements: $json } }}"
       },
-      "id": "6f7g8h9i-0j1k-2l3m-4n5o-p6q7r8s9t0u1",
+      "id": "arch-1",
       "name": "Architecture Designer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
@@ -77,7 +69,7 @@
         "jsonParameters": true,
         "jsonBody": "={{ { requirements: $json } }}"
       },
-      "id": "7g8h9i0j-1k2l-3m4n-5o6p-q7r8s9t0u1v2",
+      "id": "tech-1",
       "name": "Tech Stack Evaluator",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
@@ -85,9 +77,9 @@
     },
     {
       "parameters": {
-        "jsCode": "const results = $input.all().map(i => i.json);\\nreturn [{ json: { final_architecture: results, projectId: $json.projectId } }];"
+        "jsCode": "const results=$input.all().map(i=>i.json); return [{json:{final_architecture:results,projectId:$json.projectId}}];"
       },
-      "id": "9i0j1k2l-3m4n-5o6p-7q8r-s9t0u1v2w3x4",
+      "id": "merge-arch-1",
       "name": "Merge Architecture Results",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -101,7 +93,7 @@
         "jsonParameters": true,
         "jsonBody": "={{ { architecture: $json.final_architecture, projectId: $json.projectId } }}"
       },
-      "id": "1k2l3m4n-5o6p-7q8r-9s0t-u1v2w3x4y5z6",
+      "id": "back-1",
       "name": "Backend Generator",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
@@ -115,17 +107,15 @@
         "jsonParameters": true,
         "jsonBody": "={{ { architecture: $json.final_architecture, projectId: $json.projectId } }}"
       },
-      "id": "2l3m4n5o-6p7q-8r9s-0t1u-v2w3x4y5z6a7",
+      "id": "front-1",
       "name": "Frontend Generator",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [1360, 420]
     },
     {
-      "parameters": {
-        "jsCode": "const merged = $input.all().map(i => i.json);\\nreturn [{ json: { merged_code: merged, projectId: $json.projectId } }];"
-      },
-      "id": "merge-codes-001",
+      "parameters": { "jsCode": "const merged=$input.all().map(i=>i.json); return [{json:{merged_code:merged,projectId:$json.projectId}}];" },
+      "id": "merge-code-1",
       "name": "Merge Codes",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -139,7 +129,7 @@
         "jsonParameters": true,
         "jsonBody": "={{ { generated_code: $json.merged_code, projectId: $json.projectId } }}"
       },
-      "id": "3m4n5o6p-7q8r-9s0t-1u2v-w3x4y5z6a7b8",
+      "id": "test-1",
       "name": "Testing Engine",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
@@ -153,7 +143,7 @@
         "jsonParameters": true,
         "jsonBody": "={{ { project_data: $json } }}"
       },
-      "id": "4n5o6p7q-8r9s-0t1u-2v3w-x4y5z6a7b8c9",
+      "id": "deploy-1",
       "name": "Deployment Manager",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
@@ -167,7 +157,7 @@
         "jsonParameters": true,
         "jsonBody": "={{ { project_id: $json.projectId, status: 'completed' } }}"
       },
-      "id": "5o6p7q8r-9s0t-1u2v-3w4x-y5z6a7b8c9d0",
+      "id": "status-ok-1",
       "name": "Update Project Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
@@ -181,7 +171,7 @@
         "jsonParameters": true,
         "jsonBody": "={{ { project_id: $items('Create Project Record')[0].json.projectId, status: 'failed' } }}"
       },
-      "id": "fail-status-001",
+      "id": "status-fail-1",
       "name": "Update Project Status (Failed)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
@@ -191,27 +181,38 @@
   "connections": {
     "Build Project Webhook": { "main": [[{ "node": "Validate Request", "type": "main", "index": 0 }]] },
     "Validate Request": { "main": [[{ "node": "Create Project Record", "type": "main", "index": 0 }]] },
+
+    /* fan-out from Create Project Record (all from output 0) */
     "Create Project Record": {
-      "main": [
-        [{ "node": "Requirements Analyzer", "type": "main", "index": 0 }],
-        [{ "node": "Architecture Designer", "type": "main", "index": 0 }],
-        [{ "node": "Tech Stack Evaluator", "type": "main", "index": 0 }]
-      ]
+      "main": [[
+        { "node": "Requirements Analyzer", "type": "main", "index": 0 },
+        { "node": "Architecture Designer", "type": "main", "index": 0 },
+        { "node": "Tech Stack Evaluator", "type": "main", "index": 0 }
+      ]]
     },
+
+    /* all three feed the same input (index 0) of Merge Architecture Results */
     "Requirements Analyzer": { "main": [[{ "node": "Merge Architecture Results", "type": "main", "index": 0 }]] },
-    "Architecture Designer": { "main": [[{ "node": "Merge Architecture Results", "type": "main", "index": 1 }]] },
-    "Tech Stack Evaluator": { "main": [[{ "node": "Merge Architecture Results", "type": "main", "index": 2 }]] },
+    "Architecture Designer": { "main": [[{ "node": "Merge Architecture Results", "type": "main", "index": 0 }]] },
+    "Tech Stack Evaluator": { "main": [[{ "node": "Merge Architecture Results", "type": "main", "index": 0 }]] },
+
+    /* split to backend + frontend from the same output 0 */
     "Merge Architecture Results": {
-      "main": [
-        [{ "node": "Backend Generator", "type": "main", "index": 0 }],
-        [{ "node": "Frontend Generator", "type": "main", "index": 0 }]
-      ]
+      "main": [[
+        { "node": "Backend Generator", "type": "main", "index": 0 },
+        { "node": "Frontend Generator", "type": "main", "index": 0 }
+      ]]
     },
+
+    /* both feed Merge Codes on input 0 */
     "Backend Generator": { "main": [[{ "node": "Merge Codes", "type": "main", "index": 0 }]] },
-    "Frontend Generator": { "main": [[{ "node": "Merge Codes", "type": "main", "index": 1 }]] },
+    "Frontend Generator": { "main": [[{ "node": "Merge Codes", "type": "main", "index": 0 }]] },
+
     "Merge Codes": { "main": [[{ "node": "Testing Engine", "type": "main", "index": 0 }]] },
     "Testing Engine": { "main": [[{ "node": "Deployment Manager", "type": "main", "index": 0 }]] },
     "Deployment Manager": { "main": [[{ "node": "Update Project Status", "type": "main", "index": 0 }]] },
+
+    /* error path */
     "On Error": { "main": [[{ "node": "Update Project Status (Failed)", "type": "main", "index": 0 }]] }
   },
   "pinData": {}
