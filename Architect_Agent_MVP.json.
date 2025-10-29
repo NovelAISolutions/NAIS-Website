@@ -1,0 +1,86 @@
+{
+  "name": "Architect Agent MVP",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "When Chat Message Received",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {
+        "path": "architect_agent_input",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "responseData": "ok"
+      }
+    },
+    {
+      "id": "2",
+      "name": "Architect Agent - Brainstorm Loop",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "language": "javascript",
+        "jsCode": "const input = $json.body.message || 'No input';\nlet memory = '';\nfor (let i = 1; i <= 3; i++) {\n  const response = await $runNode('OpenAI Chat', { text: `${input}\\n\\nMemory so far: ${memory}\\n\\nIteration ${i}: brainstorm architectural ideas.` });\n  memory += `\\n\\nIteration ${i}: ${response}`;\n}\nreturn [{ json: { brainstorm_output: memory } }];"
+      }
+    },
+    {
+      "id": "3",
+      "name": "OpenAI Chat",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 1,
+      "position": [740, 180],
+      "credentials": {
+        "openAIApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI Account"
+        }
+      },
+      "parameters": {
+        "operation": "createChatCompletion",
+        "model": "gpt-4-turbo",
+        "prompt": "{{$json.text}}",
+        "temperature": 0.7,
+        "maxTokens": 2000
+      }
+    },
+    {
+      "id": "4",
+      "name": "Task Builder Node",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 1,
+      "position": [960, 300],
+      "parameters": {
+        "operation": "createChatCompletion",
+        "model": "gpt-4-turbo",
+        "prompt": "Based on the following architect brainstorm, generate four task sets: 1) Coder tasks, 2) Tester tasks, 3) Quality tasks, 4) Integration/PMO tasks. Format result in Markdown.\\n\\n{{$json.brainstorm_output}}",
+        "temperature": 0.6,
+        "maxTokens": 1500
+      }
+    },
+    {
+      "id": "5",
+      "name": "Return Structured Output",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1180, 300],
+      "parameters": {
+        "responseBody": "{{$json.choices[0].message.content}}",
+        "responseCode": 200
+      }
+    }
+  ],
+  "connections": {
+    "1": { "main": [ [ { "node": "2", "type": "main", "index": 0 } ] ] },
+    "2": { "main": [ [ { "node": "4", "type": "main", "index": 0 } ] ] },
+    "4": { "main": [ [ { "node": "5", "type": "main", "index": 0 } ] ] }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateId": "architect-agent-mvp-v1",
+    "description": "Iterative Architect Agent MVP — brainstorms 3x with OpenAI, generates coder/tester/quality tasks, returns structured output."
+  }
+}
